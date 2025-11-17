@@ -3,14 +3,14 @@ $conn = new mysqli("localhost","root","","todo_app");
 
 // Add
 if (isset($_POST['add'])) {
-    $task = $_POST['task'];
-    if ($task != "") {
-        $conn->query("INSERT INTO tasks (task) VALUES ('$task')");
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+
+    if ($title != "" && $description != "") {
+        $conn->query("INSERT INTO tasks (title, description) VALUES ('$title', '$description')");
     }
     header("Location: index.php");
 }
-
-
 
 // Delete
 if (isset($_GET['delete'])) {
@@ -19,7 +19,6 @@ if (isset($_GET['delete'])) {
     header("Location: index.php");
 }
 
-
 // Edit
 $edit = null;
 if (isset($_GET['edit'])) {
@@ -27,15 +26,15 @@ if (isset($_GET['edit'])) {
     $edit = $conn->query("SELECT * FROM tasks WHERE id=$id")->fetch_assoc();
 }
 
-
 // Update
 if (isset($_POST['update'])) {
     $id = $_POST['id'];
-    $task = $_POST['task'];
-    $conn->query("UPDATE tasks SET task='$task' WHERE id=$id");
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+
+    $conn->query("UPDATE tasks SET title='$title', description='$description' WHERE id=$id");
     header("Location: index.php");
 }
-
 
 // Get all
 $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
@@ -44,7 +43,7 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple To-Do</title>
+    <title>To-Do List</title>
 
     <style>
         body {
@@ -53,18 +52,19 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
             padding: 40px;
         }
         .box {
-            width: 420px;
+            width: 450px;
             margin: auto;
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        input[type=text] {
-            width: 70%;
+        input[type=text], textarea {
+            width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
+            margin-bottom: 10px;
         }
         button {
             padding: 10px 15px;
@@ -80,26 +80,21 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
             margin-top: 20px;
         }
         li {
-            background: #e5e5e5ff;
+            background: #e5e5e5;
             padding: 12px;
             border-radius: 6px;
             margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         a {
             text-decoration: none;
-            padding: 6px 10px;
-            border-radius: 4px;
+            padding: 6px 12px;
             color: white;
+            border-radius: 4px;
         }
-        .edit {
-            background: #ffc107;
-        }
-        .delete {
-            background: #dc3545;
-        }
+        .edit { background: #ffc107; }
+        .delete { background: #dc3545; }
+        .title { font-weight: bold; font-size: 16px; }
+        .desc { font-size: 14px; color: #555; margin-top: 4px; }
     </style>
 </head>
 
@@ -109,8 +104,10 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
     <h2>To-Do List</h2>
 
     <form method="POST">
-        <input type="text" name="task" 
-               value="<?= $edit ? $edit['task'] : '' ?>" required>
+        <input type="text" name="title" placeholder="Enter Title"
+               value="<?= $edit ? $edit['title'] : '' ?>" required>
+
+        <textarea name="description" rows="2" placeholder="Enter Description" required><?= $edit ? $edit['description'] : '' ?></textarea>
 
         <?php if ($edit) { ?>
             <input type="hidden" name="id" value="<?= $edit['id'] ?>">
@@ -123,12 +120,13 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
     <ul>
         <?php while($row = $tasks->fetch_assoc()) { ?>
             <li>
-                <?= $row['task'] ?>
+                <div class="title"><?= $row['title'] ?></div>
+                <div class="desc"><?= $row['description'] ?></div>
 
-                <div>
-                    <a class="edit" href="?edit=<?= $row['id'] ?>">Edit</a>
-                    <a class="delete" href="?delete=<?= $row['id'] ?>">Done</a>
-                </div>
+                <br>
+
+                <a class="edit" href="?edit=<?= $row['id'] ?>">Edit</a>
+                <a class="delete" href="?delete=<?= $row['id'] ?>">Delete</a>
             </li>
         <?php } ?>
     </ul>
