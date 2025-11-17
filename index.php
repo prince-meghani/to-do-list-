@@ -1,46 +1,50 @@
 <?php
 $conn = new mysqli("localhost","root","","todo_app");
 
-//add
+// Add
 if (isset($_POST['add'])) {
     $task = $_POST['task'];
     if ($task != "") {
         $conn->query("INSERT INTO tasks (task) VALUES ('$task')");
     }
+    header("Location: index.php");
 }
 
-//delete
+
+
+// Delete
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
     $conn->query("DELETE FROM tasks WHERE id=$id");
     header("Location: index.php");
-    exit;
 }
 
-//edit
-$editData = null;
+
+// Edit
+$edit = null;
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $editData = $conn->query("SELECT * FROM tasks WHERE id=$id")->fetch_assoc();
+    $edit = $conn->query("SELECT * FROM tasks WHERE id=$id")->fetch_assoc();
 }
 
-//update
+
+// Update
 if (isset($_POST['update'])) {
     $id = $_POST['id'];
     $task = $_POST['task'];
     $conn->query("UPDATE tasks SET task='$task' WHERE id=$id");
     header("Location: index.php");
-    exit;
 }
 
 
+// Get all
 $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>To-Do List</title>
+    <title>Simple To-Do</title>
 
     <style>
         body {
@@ -52,7 +56,7 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
             width: 420px;
             margin: auto;
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
@@ -76,70 +80,58 @@ $tasks = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
             margin-top: 20px;
         }
         li {
-            background: #f8f8f8;
+            background: #e5e5e5ff;
             padding: 12px;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
-        .editBtn {
-            background: #ffc107;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-        .deleteBtn {
-            background: #dc3545;
-            border: none;
-            padding: 5px 10px;
+        a {
+            text-decoration: none;
+            padding: 6px 10px;
             border-radius: 4px;
             color: white;
         }
-        .btns {
-            display: flex;
-            gap: 5px;
+        .edit {
+            background: #ffc107;
+        }
+        .delete {
+            background: #dc3545;
         }
     </style>
 </head>
+
 <body>
 
 <div class="box">
     <h2>To-Do List</h2>
 
-    
     <form method="POST">
         <input type="text" name="task" 
-               value="<?= $editData ? $editData['task'] : '' ?>" 
-               placeholder="Enter task..." required>
+               value="<?= $edit ? $edit['task'] : '' ?>" required>
 
-        <?php if ($editData) { ?>
-            <input type="hidden" name="id" value="<?= $editData['id'] ?>">
+        <?php if ($edit) { ?>
+            <input type="hidden" name="id" value="<?= $edit['id'] ?>">
             <button name="update">Update</button>
         <?php } else { ?>
             <button name="add">Add</button>
         <?php } ?>
     </form>
 
-    
     <ul>
         <?php while($row = $tasks->fetch_assoc()) { ?>
             <li>
                 <?= $row['task'] ?>
 
-                <div class="btns">
-                    <a href="?edit=<?= $row['id'] ?>">
-                        <button class="editBtn">Edit</button>
-                    </a>
-
-                    <a href="?delete=<?= $row['id'] ?>">
-                        <button class="deleteBtn">Delete</button>
-                    </a>
+                <div>
+                    <a class="edit" href="?edit=<?= $row['id'] ?>">Edit</a>
+                    <a class="delete" href="?delete=<?= $row['id'] ?>">Done</a>
                 </div>
             </li>
         <?php } ?>
     </ul>
-
 </div>
 
 </body>
